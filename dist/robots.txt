@@ -1,0 +1,12 @@
+# robots.txt - Studio Dentistico Dott.ssa Fausta Patroni
+# https://www.studiopatroni.it
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.studiopatroni.it/sitemap.xml
+
+# Disallow admin/private paths (if any)
+Disallow: /api/
+Disallow: /admin/
