@@ -368,9 +368,59 @@ function App() {
 
       {/* HERO */}
       <section ref={heroRef} className="min-h-screen relative">
-        <div className="grid lg:grid-cols-12 min-h-screen">
+        {/* Mobile Hero */}
+        <div className="lg:hidden flex flex-col min-h-screen">
+          {/* Mobile Image */}
+          <div className="hero-image relative h-[50vh] mt-20">
+            <img
+              src={foto2}
+              alt="Studio"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3F7] via-transparent to-transparent" />
+            {/* Floating badge mobile */}
+            <div className="hero-float absolute bottom-4 right-4 bg-white p-4 shadow-2xl">
+              <p className="text-3xl font-display text-[#9B7FD1]">15+</p>
+              <p className="text-xs tracking-widest uppercase text-[#6B6B7B]">Anni</p>
+            </div>
+          </div>
+
+          {/* Mobile Content */}
+          <div className="flex-1 flex flex-col justify-center px-6 py-10">
+            <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase mb-4">
+              Darfo Boario Terme
+            </span>
+
+            <h1 className="hero-title text-5xl font-display font-semibold leading-tight">
+              <span className="block">Studio</span>
+              <span className="block text-[#9B7FD1] italic">Patroni</span>
+            </h1>
+
+            <p className="hero-sub text-[#6B6B7B] text-lg mt-6 leading-relaxed">
+              Cure odontoiatriche su misura. 15 anni di esperienza, un sorriso alla volta.
+            </p>
+
+            <div className="flex items-center gap-6 mt-8">
+              <a
+                href="tel:+393757250162"
+                className="px-6 py-4 gradient-bg text-white text-sm font-medium tracking-wider uppercase"
+              >
+                Prenota
+              </a>
+              <a
+                href="#studio"
+                className="text-sm tracking-wider uppercase text-[#6B6B7B] hover:text-[#9B7FD1] transition-colors"
+              >
+                Scopri →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Hero */}
+        <div className="hidden lg:grid lg:grid-cols-12 min-h-screen">
           {/* Left content */}
-          <div className="lg:col-span-5 flex flex-col justify-center px-6 lg:px-12 pt-32 pb-16 lg:py-0">
+          <div className="lg:col-span-5 flex flex-col justify-center px-12 py-0">
             <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase mb-8">
               Darfo Boario Terme
             </span>
@@ -408,19 +458,19 @@ function App() {
                 alt="Studio"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#F5F3F7] via-transparent to-transparent lg:block hidden" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#F5F3F7] via-transparent to-transparent" />
             </div>
 
             {/* Floating badge */}
-            <div className="hero-float absolute bottom-20 left-10 lg:left-[-5%] bg-white p-6 shadow-2xl">
+            <div className="hero-float absolute bottom-20 left-[-5%] bg-white p-6 shadow-2xl">
               <p className="text-4xl font-display text-[#9B7FD1]">15+</p>
               <p className="text-xs tracking-widest uppercase text-[#6B6B7B] mt-1">Anni</p>
             </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        {/* Scroll indicator - only on desktop */}
+        <div className="hidden lg:flex absolute bottom-10 left-1/2 -translate-x-1/2 flex-col items-center gap-2">
           <span className="text-xs tracking-widest uppercase text-[#6B6B7B]">Scroll</span>
           <div className="w-px h-12 bg-[#9B7FD1]/30 relative overflow-hidden">
             <motion.div
@@ -599,24 +649,29 @@ function App() {
 
       {/* GALLERY - Horizontal Scroll */}
       <section id="galleria" className="gallery-section relative bg-[#0D0B10] overflow-hidden">
-        <div className="absolute top-12 left-12 z-10">
+        {/* Title */}
+        <div className="absolute top-8 left-6 lg:top-12 lg:left-12 z-10">
           <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Galleria )</span>
-          <h2 className="section-title text-section font-display font-semibold mt-4 text-white">
+          <h2 className="section-title text-4xl lg:text-section font-display font-semibold mt-4 text-white">
             Il nostro<br/>
             <span className="italic text-[#9B7FD1]">spazio</span>
           </h2>
         </div>
 
-        <div className="gallery-track flex items-center gap-6 py-32 pl-[40vw]">
+        {/* Horizontal Gallery - both mobile and desktop */}
+        <div className="gallery-track flex items-center gap-4 lg:gap-8 py-32 pl-[50vw] lg:pl-[40vw]">
           {[foto1, foto3, foto5, foto6, foto7, foto8, foto9, foto11, foto12].map((img, i) => {
-            const heights = ['h-[50vh]', 'h-[70vh]', 'h-[45vh]', 'h-[60vh]', 'h-[55vh]', 'h-[65vh]', 'h-[50vh]', 'h-[58vh]', 'h-[52vh]']
-            const widths = ['w-[35vw]', 'w-[28vw]', 'w-[40vw]', 'w-[32vw]', 'w-[38vw]', 'w-[30vw]', 'w-[36vw]', 'w-[34vw]', 'w-[42vw]']
-            const tops = ['mt-0', 'mt-20', '-mt-10', 'mt-32', 'mt-8', '-mt-16', 'mt-24', 'mt-4', 'mt-16']
+            // Mobile: wider fixed sizes, Desktop: varied sizes
+            const mobileWidth = 'min-w-[280px] w-[280px]'
+            const mobileHeight = 'h-[300px]'
+            const desktopWidths = ['lg:w-[400px]', 'lg:w-[350px]', 'lg:w-[450px]', 'lg:w-[380px]', 'lg:w-[420px]', 'lg:w-[360px]', 'lg:w-[400px]', 'lg:w-[380px]', 'lg:w-[450px]']
+            const desktopHeights = ['lg:h-[50vh]', 'lg:h-[65vh]', 'lg:h-[45vh]', 'lg:h-[55vh]', 'lg:h-[50vh]', 'lg:h-[60vh]', 'lg:h-[48vh]', 'lg:h-[55vh]', 'lg:h-[50vh]']
+            const tops = ['lg:mt-0', 'lg:mt-16', 'lg:-mt-8', 'lg:mt-24', 'lg:mt-4', 'lg:-mt-12', 'lg:mt-20', 'lg:mt-0', 'lg:mt-12']
 
             return (
               <div
                 key={i}
-                className={`flex-shrink-0 ${widths[i]} ${heights[i]} ${tops[i]} relative group`}
+                className={`flex-shrink-0 ${mobileWidth} ${mobileHeight} ${desktopWidths[i]} ${desktopHeights[i]} ${tops[i]} relative group`}
               >
                 <img
                   src={img}
