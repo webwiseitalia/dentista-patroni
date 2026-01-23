@@ -24,16 +24,13 @@ gsap.registerPlugin(ScrollTrigger)
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeFaq, setActiveFaq] = useState(null)
-  const containerRef = useRef(null)
+  const mainRef = useRef(null)
   const heroRef = useRef(null)
-  const galleryRef = useRef(null)
 
-  // Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.6,
+      duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
       smoothWheel: true,
     })
 
@@ -50,55 +47,70 @@ function App() {
     return () => lenis.destroy()
   }, [])
 
-  // GSAP Animations
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Hero intro
-      const heroTl = gsap.timeline({ delay: 0.2 })
+      // Hero title animation
+      const heroTitle = document.querySelector('.hero-title')
+      if (heroTitle) {
+        const split = new SplitType(heroTitle, { types: 'chars, words' })
+        gsap.fromTo(split.chars,
+          { y: 100, opacity: 0, rotateX: -80 },
+          {
+            y: 0,
+            opacity: 1,
+            rotateX: 0,
+            duration: 1.2,
+            ease: 'power4.out',
+            stagger: { each: 0.02, from: 'start' },
+            delay: 0.3
+          }
+        )
+      }
 
-      // Split hero title
-      const heroTitle = new SplitType('.hero-main-title', { types: 'chars, words, lines' })
-      heroTl.fromTo(heroTitle.chars,
-        { y: '100%', rotationX: -80, opacity: 0 },
+      // Hero subtitle
+      const heroSub = document.querySelector('.hero-sub')
+      if (heroSub) {
+        const splitSub = new SplitType(heroSub, { types: 'words' })
+        gsap.fromTo(splitSub.words,
+          { y: 40, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power3.out',
+            stagger: 0.03,
+            delay: 0.8
+          }
+        )
+      }
+
+      // Hero image reveal
+      gsap.fromTo('.hero-image',
+        { clipPath: 'inset(100% 0 0 0)', scale: 1.2 },
         {
-          y: '0%',
-          rotationX: 0,
-          opacity: 1,
-          duration: 1.4,
-          ease: 'expo.out',
-          stagger: { each: 0.025, from: 'start' }
+          clipPath: 'inset(0% 0 0 0)',
+          scale: 1,
+          duration: 1.5,
+          ease: 'power3.inOut',
+          delay: 0.4
         }
       )
 
-      // Hero subtitle reveal
-      const heroSub = new SplitType('.hero-subtitle', { types: 'words' })
-      heroTl.fromTo(heroSub.words,
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.03 },
-        '-=0.8'
+      // Hero floating image
+      gsap.fromTo('.hero-float',
+        { y: 100, opacity: 0, rotate: 5 },
+        {
+          y: 0,
+          opacity: 1,
+          rotate: 0,
+          duration: 1.2,
+          ease: 'power3.out',
+          delay: 1
+        }
       )
 
-      // Hero images staggered reveal
-      heroTl.fromTo('.hero-img-1',
-        { clipPath: 'inset(100% 0 0 0)', scale: 1.2 },
-        { clipPath: 'inset(0% 0 0 0)', scale: 1, duration: 1.4, ease: 'expo.inOut' },
-        '-=1.2'
-      )
-      heroTl.fromTo('.hero-img-2',
-        { clipPath: 'inset(0 100% 0 0)', scale: 1.15 },
-        { clipPath: 'inset(0 0% 0 0)', scale: 1, duration: 1.2, ease: 'expo.inOut' },
-        '-=0.9'
-      )
-
-      // Hero CTA
-      heroTl.fromTo('.hero-cta',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
-        '-=0.4'
-      )
-
-      // Parallax on hero images
-      gsap.to('.hero-img-1 img', {
+      // Parallax hero images
+      gsap.to('.hero-image img', {
         yPercent: 20,
         ease: 'none',
         scrollTrigger: {
@@ -109,37 +121,28 @@ function App() {
         }
       })
 
-      gsap.to('.hero-img-2 img', {
-        yPercent: -15,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 2
-        }
-      })
-
-      // Section titles with varied animations
-      gsap.utils.toArray('.section-heading').forEach((el, i) => {
-        const split = new SplitType(el, { types: 'chars, words' })
-        const direction = i % 2 === 0 ? 1 : -1
+      // Section titles - each different
+      gsap.utils.toArray('.section-title').forEach((el, i) => {
+        const split = new SplitType(el, { types: 'chars' })
+        const direction = i % 3
 
         gsap.fromTo(split.chars,
           {
-            y: 60 * direction,
+            y: direction === 0 ? 80 : 0,
+            x: direction === 1 ? -50 : direction === 2 ? 50 : 0,
             opacity: 0,
-            rotationZ: 5 * direction
+            rotate: direction === 0 ? 10 : direction === 1 ? -5 : 5
           },
           {
             y: 0,
+            x: 0,
             opacity: 1,
-            rotationZ: 0,
-            duration: 0.9,
-            ease: 'back.out(1.4)',
+            rotate: 0,
+            duration: 1,
+            ease: 'power3.out',
             stagger: {
-              each: 0.02,
-              from: i % 2 === 0 ? 'start' : 'end'
+              each: 0.025,
+              from: direction === 1 ? 'end' : 'start'
             },
             scrollTrigger: {
               trigger: el,
@@ -150,40 +153,22 @@ function App() {
         )
       })
 
-      // Staggered content reveals with different timing
-      gsap.utils.toArray('.content-reveal').forEach((el, i) => {
-        const delay = (i % 4) * 0.1
-        gsap.fromTo(el,
-          { y: 80, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'expo.out',
-            delay,
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 88%',
-              toggleActions: 'play none none reverse'
-            }
-          }
-        )
-      })
-
-      // Image reveals with clip-path
-      gsap.utils.toArray('.img-reveal').forEach((el, i) => {
+      // Image reveals with different directions
+      gsap.utils.toArray('.img-anim').forEach((el, i) => {
         const directions = [
-          'inset(0 100% 0 0)',
-          'inset(100% 0 0 0)',
-          'inset(0 0 100% 0)',
-          'inset(0 0 0 100%)'
+          { from: 'inset(100% 0 0 0)', to: 'inset(0% 0 0 0)' },
+          { from: 'inset(0 100% 0 0)', to: 'inset(0 0% 0 0)' },
+          { from: 'inset(0 0 100% 0)', to: 'inset(0 0 0% 0)' },
+          { from: 'inset(0 0 0 100%)', to: 'inset(0 0 0 0%)' }
         ]
+        const dir = directions[i % 4]
+
         gsap.fromTo(el,
-          { clipPath: directions[i % 4] },
+          { clipPath: dir.from },
           {
-            clipPath: 'inset(0 0 0 0)',
+            clipPath: dir.to,
             duration: 1.4,
-            ease: 'expo.inOut',
+            ease: 'power3.inOut',
             scrollTrigger: {
               trigger: el,
               start: 'top 80%',
@@ -193,38 +178,42 @@ function App() {
         )
       })
 
-      // Horizontal gallery scroll
-      const galleryPanels = gsap.utils.toArray('.gallery-item')
-      if (galleryPanels.length > 0 && galleryRef.current) {
-        gsap.to(galleryPanels, {
-          xPercent: -100 * (galleryPanels.length - 1),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: galleryRef.current,
-            pin: true,
-            scrub: 1.2,
-            snap: 1 / (galleryPanels.length - 1),
-            end: () => '+=' + galleryRef.current.offsetWidth * 1.5
-          }
-        })
-      }
+      // Service items staggered chaos
+      const services = gsap.utils.toArray('.service-item')
+      services.forEach((el, i) => {
+        const randomY = 60 + Math.random() * 40
+        const randomRotate = (Math.random() - 0.5) * 6
+        const randomDelay = Math.random() * 0.3
 
-      // Services - varied entry
-      gsap.utils.toArray('.service-card').forEach((card, i) => {
-        const xOffset = i % 2 === 0 ? -50 : 50
-        const rotation = i % 2 === 0 ? -3 : 3
-
-        gsap.fromTo(card,
-          { x: xOffset, y: 60, opacity: 0, rotation },
+        gsap.fromTo(el,
+          { y: randomY, opacity: 0, rotate: randomRotate },
           {
-            x: 0,
             y: 0,
             opacity: 1,
-            rotation: 0,
-            duration: 1.1,
-            ease: 'expo.out',
+            rotate: 0,
+            duration: 1,
+            ease: 'power3.out',
+            delay: randomDelay,
             scrollTrigger: {
-              trigger: card,
+              trigger: el,
+              start: 'top 90%',
+              toggleActions: 'play none none reverse'
+            }
+          }
+        )
+      })
+
+      // Fade reveals
+      gsap.utils.toArray('.fade-reveal').forEach((el) => {
+        gsap.fromTo(el,
+          { y: 50, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: el,
               start: 'top 85%',
               toggleActions: 'play none none reverse'
             }
@@ -232,95 +221,143 @@ function App() {
         )
       })
 
-    }, containerRef)
+      // Horizontal scroll gallery
+      const gallerySection = document.querySelector('.gallery-section')
+      const galleryTrack = document.querySelector('.gallery-track')
+
+      if (gallerySection && galleryTrack) {
+        gsap.to(galleryTrack, {
+          x: () => -(galleryTrack.scrollWidth - window.innerWidth + 100),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: gallerySection,
+            start: 'top top',
+            end: () => '+=' + galleryTrack.scrollWidth,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1
+          }
+        })
+      }
+
+    }, mainRef)
 
     return () => ctx.revert()
   }, [])
 
+  const [activeService, setActiveService] = useState(null)
+
   const servizi = [
-    { title: 'Ortodonzia', desc: 'Correzione dell\'allineamento per un sorriso perfetto' },
-    { title: 'Invisalign', desc: 'Allineatori trasparenti e discreti' },
-    { title: 'Igiene Dentale', desc: 'Pulizia professionale e prevenzione' },
-    { title: 'Visite', desc: 'Controlli completi e diagnosi accurate' },
-    { title: 'Cura Carie', desc: 'Trattamenti conservativi e indolore' },
-    { title: 'Prevenzione', desc: 'Programmi su misura per ogni età' }
+    {
+      title: 'Visite',
+      desc: 'Controlli completi e approfonditi per monitorare la salute della tua bocca. Utilizziamo tecnologie moderne per diagnosi accurate e tempestive.'
+    },
+    {
+      title: 'Ortodonzia',
+      desc: 'Trattamenti personalizzati per allineare i denti e correggere la masticazione. Soluzioni per adulti e bambini.'
+    },
+    {
+      title: 'Igiene Dentale',
+      desc: 'Pulizia professionale profonda per rimuovere placca e tartaro. Consigli personalizzati per mantenere i denti sani a casa.'
+    },
+    {
+      title: 'Invisalign',
+      desc: 'Allineatori trasparenti e rimovibili per un sorriso perfetto senza compromessi estetici. Risultati visibili in pochi mesi.'
+    },
+    {
+      title: 'Cura Carie',
+      desc: 'Trattamenti conservativi per riparare i denti danneggiati. Otturazioni estetiche e durature con materiali di alta qualità.'
+    },
+    {
+      title: 'Prevenzione',
+      desc: 'Programmi su misura per prevenire problemi dentali. Sigillature, fluoroprofilassi e controlli periodici.'
+    }
   ]
 
   const orari = [
-    { day: 'Lunedì', time: '14:00 – 19:00' },
-    { day: 'Martedì', time: '09:00 – 13:00' },
-    { day: 'Mercoledì', time: '14:00 – 19:00' },
-    { day: 'Giovedì', time: 'Chiuso' },
-    { day: 'Venerdì', time: '09:00 – 19:00' },
-    { day: 'Sabato', time: '09:00 – 13:00' }
+    { day: 'Lun', time: '14–19' },
+    { day: 'Mar', time: '9–13' },
+    { day: 'Mer', time: '14–19' },
+    { day: 'Gio', time: '—' },
+    { day: 'Ven', time: '9–19' },
+    { day: 'Sab', time: '9–13' }
   ]
 
   const faqs = [
-    { q: 'Come posso prenotare una visita?', a: 'Chiamaci al +39 375 725 0162 o scrivici su Facebook. Ti risponderemo rapidamente.' },
-    { q: 'È necessario l\'appuntamento?', a: 'Sì, lavoriamo solo su appuntamento per dedicare il giusto tempo a ogni paziente.' },
-    { q: 'Trattate anche i bambini?', a: 'Certamente, accogliamo pazienti di tutte le età con particolare attenzione ai più piccoli.' },
-    { q: 'Quanto dura una visita?', a: 'Una visita di controllo standard dura circa 30 minuti.' }
+    { q: 'Come prenoto?', a: 'Chiamaci al +39 375 725 0162 o scrivici su Facebook.' },
+    { q: 'Serve appuntamento?', a: 'Sì, lavoriamo solo su appuntamento.' },
+    { q: 'Bambini?', a: 'Accogliamo pazienti di tutte le età.' },
+    { q: 'Durata visita?', a: 'Circa 30 minuti.' }
   ]
 
   return (
-    <div ref={containerRef} className="bg-[#0c0c0c] text-[#f8f8f6] min-h-screen">
-      <div className="noise" />
+    <div ref={mainRef} className="bg-[#F5F3F7] text-[#0D0B10] min-h-screen overflow-x-hidden">
 
-      {/* NAVBAR */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-5 lg:px-10 py-5 lg:py-6 flex items-center justify-between mix-blend-difference">
-        <a href="#" className="block">
-          <img src={logo} alt="Studio Patroni" className="h-8 lg:h-10 invert" />
-        </a>
+      {/* NAV */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F3F7]/90 backdrop-blur-md border-b border-[#0D0B10]/5">
+        <div className="flex justify-between items-center px-6 lg:px-12 py-4">
+          <a href="#">
+            <img src={logo} alt="Patroni" className="h-10 lg:h-12" />
+          </a>
 
-        <nav className="hidden lg:flex items-center gap-10">
-          {['Chi Siamo', 'Servizi', 'Galleria', 'Contatti'].map((item, i) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(' ', '-')}`}
-              className="text-xs tracking-[0.2em] uppercase link-underline text-[#f8f8f6] hover:text-[#c9a86c] transition-colors duration-500"
-            >
-              {item}
-            </a>
-          ))}
-        </nav>
+          <div className="hidden lg:flex items-center gap-12">
+            {['Servizi', 'Studio', 'Galleria', 'Contatti', 'Prenota'].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className={`text-sm tracking-widest uppercase transition-colors ${
+                  item === 'Prenota'
+                    ? 'text-[#9B7FD1] font-medium hover:text-[#7B5FB1]'
+                    : 'text-[#0D0B10] hover:text-[#9B7FD1]'
+                }`}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
 
-        <a
-          href="tel:+393757250162"
-          className="hidden lg:flex items-center gap-2 text-xs tracking-wider uppercase"
-        >
-          <span className="w-2 h-2 rounded-full bg-[#c9a86c] animate-pulse" />
-          Prenota
-        </a>
+          <a
+            href="tel:+393757250162"
+            className="hidden lg:flex items-center gap-2 px-6 py-3 gradient-bg text-white text-sm tracking-wider font-medium hover:opacity-90 transition-opacity"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            Contattaci
+          </a>
 
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="lg:hidden w-8 h-8 flex flex-col justify-center items-center gap-1"
-        >
-          <span className={`w-5 h-px bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[3px]' : ''}`} />
-          <span className={`w-5 h-px bg-white transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[2px]' : ''}`} />
-        </button>
-      </header>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="lg:hidden text-[#0D0B10]"
+          >
+            <div className="w-6 h-4 flex flex-col justify-between">
+              <span className={`h-px bg-[#0D0B10] transition-all ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+              <span className={`h-px bg-[#0D0B10] transition-all ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+            </div>
+          </button>
+        </div>
+      </nav>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-40 bg-[#0c0c0c] flex flex-col justify-center items-start px-8"
+            initial={{ clipPath: 'circle(0% at top right)' }}
+            animate={{ clipPath: 'circle(150% at top right)' }}
+            exit={{ clipPath: 'circle(0% at top right)' }}
+            transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
+            className="fixed inset-0 z-40 bg-[#9B7FD1] flex flex-col justify-center items-start px-10"
           >
-            {['Chi Siamo', 'Servizi', 'Galleria', 'Contatti'].map((item, i) => (
+            {['Servizi', 'Studio', 'Galleria', 'Contatti', 'Prenota'].map((item, i) => (
               <motion.a
                 key={item}
-                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                href={`#${item.toLowerCase()}`}
                 onClick={() => setMenuOpen(false)}
                 initial={{ x: -50, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.1 + i * 0.07 }}
-                className="text-4xl lg:text-5xl font-display py-3 border-b border-white/10 w-full"
-                style={{ marginLeft: `${i * 12}px` }}
+                transition={{ delay: 0.1 + i * 0.05 }}
+                className="text-white text-5xl font-light py-3"
+                style={{ marginLeft: `${i * 20}px` }}
               >
                 {item}
               </motion.a>
@@ -330,100 +367,216 @@ function App() {
       </AnimatePresence>
 
       {/* HERO */}
-      <section ref={heroRef} className="min-h-screen relative overflow-hidden">
-        {/* Hero background images - asymmetric placement */}
-        <div className="absolute inset-0">
-          <div className="hero-img-1 absolute top-[12%] right-[3%] w-[42vw] h-[58vh] lg:w-[32vw] lg:h-[65vh] overflow-hidden">
-            <img src={foto2} alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hero-img-2 absolute bottom-[8%] left-[5%] w-[28vw] h-[35vh] overflow-hidden hidden lg:block">
-            <img src={foto7} alt="" className="w-full h-full object-cover opacity-70" />
-          </div>
-        </div>
-
-        {/* Hero content */}
-        <div className="relative z-10 min-h-screen flex flex-col justify-center px-5 lg:px-16 pt-24 pb-16">
-          <div className="max-w-[90vw] lg:max-w-[65vw]">
-            <p className="text-[#c9a86c] text-xs lg:text-sm tracking-[0.4em] uppercase mb-6 lg:mb-10">
+      <section ref={heroRef} className="min-h-screen relative">
+        <div className="grid lg:grid-cols-12 min-h-screen">
+          {/* Left content */}
+          <div className="lg:col-span-5 flex flex-col justify-center px-6 lg:px-12 pt-32 pb-16 lg:py-0">
+            <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase mb-8">
               Darfo Boario Terme
-            </p>
+            </span>
 
-            <h1 className="hero-main-title text-fluid-hero font-display leading-[0.9] tracking-[-0.02em] mb-8 lg:mb-14">
+            <h1 className="hero-title text-hero font-display font-semibold">
               <span className="block">Studio</span>
-              <span className="block italic text-[#c9a86c] ml-[8vw]">Dentistico</span>
-              <span className="block">Patroni</span>
+              <span className="block text-[#9B7FD1] italic">Patroni</span>
             </h1>
 
-            <p className="hero-subtitle text-[#888] text-fluid-base max-w-md lg:max-w-lg leading-relaxed lg:ml-[15vw] mb-10 lg:mb-14">
-              Cure odontoiatriche su misura con oltre 15 anni di esperienza.
-              Specializzati in ortodonzia e trattamenti Invisalign.
+            <p className="hero-sub text-[#6B6B7B] text-large mt-12 max-w-md leading-relaxed">
+              Cure odontoiatriche su misura. 15 anni di esperienza, un sorriso alla volta.
             </p>
 
-            <div className="hero-cta flex flex-wrap items-center gap-6 lg:gap-10">
+            <div className="flex items-center gap-8 mt-16">
               <a
                 href="tel:+393757250162"
-                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-[#c9a86c] text-[#0c0c0c] text-sm font-medium tracking-wider uppercase overflow-hidden"
+                className="px-8 py-4 gradient-bg text-white text-sm font-medium tracking-wider uppercase"
               >
-                <span className="relative z-10">Prenota Visita</span>
-                <span className="absolute inset-0 bg-[#f8f8f6] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+                Prenota
               </a>
-              <a href="#chi-siamo" className="text-sm tracking-widest uppercase text-[#888] hover:text-[#f8f8f6] transition-colors link-underline">
-                Scopri di più
+              <a
+                href="#studio"
+                className="text-sm tracking-wider uppercase text-[#6B6B7B] hover:text-[#9B7FD1] transition-colors"
+              >
+                Scopri →
               </a>
             </div>
           </div>
 
-          {/* Floating badge */}
-          <div className="absolute bottom-16 right-8 lg:bottom-24 lg:right-20 text-right">
-            <p className="text-6xl lg:text-8xl font-display text-[#c9a86c]">15+</p>
-            <p className="text-xs tracking-[0.3em] uppercase text-[#888] mt-2">Anni di esperienza</p>
+          {/* Right image */}
+          <div className="lg:col-span-7 relative">
+            <div className="hero-image absolute inset-0 lg:left-[-10%]">
+              <img
+                src={foto2}
+                alt="Studio"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#F5F3F7] via-transparent to-transparent lg:block hidden" />
+            </div>
+
+            {/* Floating badge */}
+            <div className="hero-float absolute bottom-20 left-10 lg:left-[-5%] bg-white p-6 shadow-2xl">
+              <p className="text-4xl font-display text-[#9B7FD1]">15+</p>
+              <p className="text-xs tracking-widest uppercase text-[#6B6B7B] mt-1">Anni</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span className="text-xs tracking-widest uppercase text-[#6B6B7B]">Scroll</span>
+          <div className="w-px h-12 bg-[#9B7FD1]/30 relative overflow-hidden">
+            <motion.div
+              className="w-full h-4 bg-[#9B7FD1]"
+              animate={{ y: [0, 32, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
           </div>
         </div>
       </section>
 
       {/* MARQUEE */}
-      <div className="py-6 border-y border-white/5 overflow-hidden">
-        <div className="marquee-inner">
+      <div className="py-8 overflow-hidden border-y border-[#9B7FD1]/10">
+        <div className="marquee-track whitespace-nowrap">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="flex items-center gap-12 px-6 shrink-0">
-              {['Ortodonzia', '·', 'Invisalign Provider', '·', 'Igiene Dentale', '·', 'Prevenzione', '·', 'Cura Carie', '·'].map((t, j) => (
-                <span key={j} className="text-2xl lg:text-4xl font-display italic text-white/15 whitespace-nowrap">
-                  {t}
+            <span key={i} className="inline-flex items-center">
+              {['Invisalign Provider', 'Ortodonzia', 'Igiene', 'Prevenzione', 'Cura Carie'].map((t, j) => (
+                <span key={j} className="inline-flex items-center mx-8">
+                  <span className="text-3xl lg:text-5xl font-display text-[#9B7FD1]/20">{t}</span>
+                  <span className="w-3 h-3 rounded-full bg-[#3DD6E8]/30 ml-8" />
                 </span>
               ))}
-            </div>
+            </span>
           ))}
         </div>
       </div>
 
-      {/* CHI SIAMO */}
-      <section id="chi-siamo" className="py-golden relative">
-        <div className="px-5 lg:px-16">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-6">
-            {/* Left column - offset up */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:-mt-20">
-              <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-4">(Chi Siamo)</p>
-              <h2 className="section-heading text-fluid-3xl font-display leading-[0.95] mb-8">
-                Dott.ssa<br />
-                <span className="italic text-[#c9a86c]">Fausta Patroni</span>
+      {/* SERVIZI - Accordion */}
+      <section id="servizi" className="py-32 lg:py-48">
+        <div className="px-6 lg:px-12">
+          <div className="lg:grid lg:grid-cols-12 gap-16">
+            {/* Left - Title */}
+            <div className="lg:col-span-4 mb-16 lg:mb-0 lg:sticky lg:top-32 lg:self-start">
+              <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Servizi )</span>
+              <h2 className="section-title text-section font-display font-semibold mt-4">
+                Cosa<br/>
+                <span className="italic text-[#9B7FD1]">facciamo</span>
               </h2>
-              <div className="content-reveal space-y-5 text-[#888] text-fluid-base leading-relaxed max-w-md">
-                <p>
-                  Con anni di dedizione all'odontoiatria, la Dottoressa Patroni ha costruito
-                  uno studio dove ogni paziente trova un'esperienza su misura.
-                </p>
-                <p>
-                  Professionalità, empatia e tecnologie moderne si incontrano per offrire
-                  cure all'avanguardia in un ambiente accogliente.
-                </p>
-              </div>
+              <p className="fade-reveal text-[#6B6B7B] text-lg leading-relaxed mt-8">
+                Trattamenti completi per tutta la famiglia, con attenzione e professionalità.
+              </p>
+            </div>
 
-              <div className="content-reveal flex flex-wrap gap-4 mt-10">
+            {/* Right - Accordion */}
+            <div className="lg:col-span-7 lg:col-start-6">
+              {servizi.map((s, i) => (
+                <div
+                  key={i}
+                  className="service-item border-b border-[#0D0B10]/10 first:border-t"
+                >
+                  <button
+                    onClick={() => setActiveService(activeService === i ? null : i)}
+                    className="w-full py-8 flex items-center justify-between text-left group"
+                  >
+                    <div className="flex items-center gap-6">
+                      <span className="text-xs text-[#9B7FD1] font-mono">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <h3 className="text-2xl lg:text-3xl font-display group-hover:text-[#9B7FD1] transition-colors">
+                        {s.title}
+                      </h3>
+                    </div>
+                    <span
+                      className={`w-10 h-10 border border-[#9B7FD1]/30 flex items-center justify-center text-[#9B7FD1] transition-all duration-300 ${
+                        activeService === i ? 'bg-[#9B7FD1] text-white rotate-45' : 'group-hover:border-[#9B7FD1]'
+                      }`}
+                    >
+                      +
+                    </span>
+                  </button>
+                  <AnimatePresence>
+                    {activeService === i && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-10 pl-16">
+                          <p className="text-[#6B6B7B] text-lg leading-relaxed max-w-lg">
+                            {s.desc}
+                          </p>
+                          <a
+                            href="tel:+393757250162"
+                            className="inline-flex items-center gap-3 mt-6 text-[#9B7FD1] hover:text-[#3DD6E8] transition-colors text-sm tracking-wider uppercase"
+                          >
+                            Prenota
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                          </a>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* INVISALIGN - Asymmetric */}
+      <section className="relative py-32 lg:py-0">
+        <div className="lg:grid lg:grid-cols-12 lg:min-h-screen">
+          <div className="lg:col-span-7 lg:col-start-1 relative h-[60vh] lg:h-auto">
+            <div className="img-anim absolute inset-0">
+              <img src={foto10} alt="Invisalign" className="w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 lg:col-start-9 flex items-center px-6 lg:px-0 py-16 lg:py-32">
+            <div className="lg:-ml-32 relative z-10 bg-[#F5F3F7] lg:p-12">
+              <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( In evidenza )</span>
+              <h2 className="section-title text-section font-display font-semibold mt-4">
+                Invisa<span className="italic text-[#9B7FD1]">lign</span>
+              </h2>
+              <p className="fade-reveal text-[#6B6B7B] text-large mt-8 leading-relaxed">
+                Allineatori trasparenti per un sorriso perfetto. Discreti, comodi, efficaci.
+              </p>
+              <a
+                href="tel:+393757250162"
+                className="fade-reveal inline-flex items-center gap-4 mt-10 text-[#9B7FD1] hover:text-[#3DD6E8] transition-colors"
+              >
+                <span className="w-12 h-12 border border-current flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </span>
+                <span className="text-sm tracking-wider uppercase">Info</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STUDIO */}
+      <section id="studio" className="py-32 lg:py-48">
+        <div className="px-6 lg:px-12">
+          <div className="lg:grid lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-5 lg:col-start-2 mb-16 lg:mb-0">
+              <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Lo Studio )</span>
+              <h2 className="section-title text-section font-display font-semibold mt-4">
+                Dott.ssa<br/>
+                <span className="italic text-[#9B7FD1]">Fausta Patroni</span>
+              </h2>
+              <p className="fade-reveal text-[#6B6B7B] text-large mt-8 leading-relaxed">
+                Esperienza, empatia, tecnologia. Un approccio su misura per ogni paziente.
+              </p>
+              <div className="fade-reveal flex flex-wrap gap-4 mt-10">
                 {['Professionalità', 'Empatia', 'Tecnologia'].map((v, i) => (
                   <span
                     key={v}
-                    className="px-5 py-2 border border-white/10 text-xs tracking-[0.15em] uppercase text-[#888]"
-                    style={{ transform: `rotate(${i % 2 === 0 ? -1 : 1}deg)` }}
+                    className="px-4 py-2 border border-[#9B7FD1]/30 text-xs tracking-wider uppercase text-[#6B6B7B]"
+                    style={{ transform: `rotate(${(i - 1) * 2}deg)` }}
                   >
                     {v}
                   </span>
@@ -431,161 +584,95 @@ function App() {
               </div>
             </div>
 
-            {/* Right column - image */}
-            <div className="lg:col-span-6 lg:col-start-7 relative mt-10 lg:mt-0">
-              <div className="img-reveal">
-                <img src={foto4} alt="Studio Dentistico" className="w-full aspect-[3/4] object-cover" />
+            <div className="lg:col-span-5 lg:col-start-8 relative">
+              <div className="img-anim">
+                <img src={foto4} alt="Dottoressa" className="w-full aspect-[3/4] object-cover" />
               </div>
-
-              {/* Overlapping stat card */}
-              <div className="absolute -bottom-8 -left-4 lg:-left-16 bg-[#0c0c0c] border border-white/10 p-6 lg:p-8 content-reveal">
-                <p className="text-4xl lg:text-5xl font-display text-[#c9a86c]">1000+</p>
-                <p className="text-xs tracking-[0.2em] uppercase text-[#888] mt-2">Pazienti soddisfatti</p>
+              <div className="fade-reveal absolute -bottom-8 -left-8 bg-white p-6 shadow-xl">
+                <p className="text-4xl font-display text-gradient">1000+</p>
+                <p className="text-xs tracking-widest uppercase text-[#6B6B7B] mt-1">Pazienti</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SERVIZI */}
-      <section id="servizi" className="py-golden relative">
-        <div className="px-5 lg:px-16">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-16 lg:mb-24">
-            <div>
-              <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-4">(Servizi)</p>
-              <h2 className="section-heading text-fluid-3xl font-display leading-[0.95]">
-                I nostri<br />
-                <span className="italic text-[#c9a86c]">trattamenti</span>
-              </h2>
-            </div>
-            <p className="content-reveal text-[#888] max-w-sm mt-6 lg:mt-0 lg:text-right text-fluid-base">
-              Soluzioni complete per la salute e la bellezza del tuo sorriso.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {servizi.map((s, i) => {
-              const offsets = ['lg:mt-0', 'lg:mt-12', 'lg:mt-6', 'lg:mt-16', 'lg:mt-3', 'lg:mt-10']
-              return (
-                <div
-                  key={i}
-                  className={`service-card group relative p-8 lg:p-10 border border-white/10 hover:border-[#c9a86c]/40 transition-all duration-700 ${offsets[i]}`}
-                >
-                  <span className="absolute top-4 right-4 text-xs text-white/20 font-mono">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <h3 className="text-fluid-xl font-display mb-3 group-hover:text-[#c9a86c] transition-colors duration-500">
-                    {s.title}
-                  </h3>
-                  <p className="text-[#888] text-sm leading-relaxed">{s.desc}</p>
-                  <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#c9a86c] group-hover:w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                </div>
-              )
-            })}
-          </div>
+      {/* GALLERY - Horizontal Scroll */}
+      <section id="galleria" className="gallery-section relative bg-[#0D0B10] overflow-hidden">
+        <div className="absolute top-12 left-12 z-10">
+          <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Galleria )</span>
+          <h2 className="section-title text-section font-display font-semibold mt-4 text-white">
+            Il nostro<br/>
+            <span className="italic text-[#9B7FD1]">spazio</span>
+          </h2>
         </div>
-      </section>
 
-      {/* INVISALIGN FEATURE */}
-      <section className="relative py-golden overflow-hidden">
-        <div className="grid lg:grid-cols-2 min-h-[80vh]">
-          {/* Image - full bleed left */}
-          <div className="relative h-[50vh] lg:h-auto order-2 lg:order-1">
-            <div className="img-reveal absolute inset-0">
-              <img src={foto10} alt="Invisalign" className="w-full h-full object-cover" />
-            </div>
-          </div>
+        <div className="gallery-track flex items-center gap-6 py-32 pl-[40vw]">
+          {[foto1, foto3, foto5, foto6, foto7, foto8, foto9, foto11, foto12].map((img, i) => {
+            const heights = ['h-[50vh]', 'h-[70vh]', 'h-[45vh]', 'h-[60vh]', 'h-[55vh]', 'h-[65vh]', 'h-[50vh]', 'h-[58vh]', 'h-[52vh]']
+            const widths = ['w-[35vw]', 'w-[28vw]', 'w-[40vw]', 'w-[32vw]', 'w-[38vw]', 'w-[30vw]', 'w-[36vw]', 'w-[34vw]', 'w-[42vw]']
+            const tops = ['mt-0', 'mt-20', '-mt-10', 'mt-32', 'mt-8', '-mt-16', 'mt-24', 'mt-4', 'mt-16']
 
-          {/* Content - right */}
-          <div className="flex items-center px-5 lg:px-16 py-16 lg:py-24 order-1 lg:order-2 bg-[#0c0c0c]">
-            <div className="max-w-lg">
-              <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-6">(In Evidenza)</p>
-
-              <h3 className="section-heading text-fluid-2xl font-display leading-[0.95] mb-8">
-                Trattamenti<br />
-                <span className="italic text-[#c9a86c]">Invisalign</span>
-              </h3>
-
-              <p className="content-reveal text-[#888] text-fluid-base leading-relaxed mb-10">
-                Raddrizza i tuoi denti in modo completamente discreto. Gli allineatori
-                trasparenti Invisalign sono la soluzione moderna, confortevole e
-                praticamente invisibile per un sorriso perfetto.
-              </p>
-
-              <a
-                href="tel:+393757250162"
-                className="content-reveal inline-flex items-center gap-4 group"
+            return (
+              <div
+                key={i}
+                className={`flex-shrink-0 ${widths[i]} ${heights[i]} ${tops[i]} relative group`}
               >
-                <span className="w-14 h-14 border border-[#c9a86c] flex items-center justify-center group-hover:bg-[#c9a86c] transition-all duration-500">
-                  <svg className="w-5 h-5 text-[#c9a86c] group-hover:text-[#0c0c0c] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
+                <img
+                  src={img}
+                  alt={`Gallery ${i + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-[#9B7FD1]/0 group-hover:bg-[#9B7FD1]/20 transition-colors duration-500" />
+                <span className="absolute bottom-4 left-4 text-white/50 text-xs font-mono">
+                  {String(i + 1).padStart(2, '0')}
                 </span>
-                <span className="text-sm tracking-[0.2em] uppercase">Richiedi info</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* GALLERY - Horizontal scroll */}
-      <section id="galleria" ref={galleryRef} className="relative bg-[#0a0a0a]">
-        <div className="py-16 lg:py-24">
-          <div className="px-5 lg:px-16 mb-12">
-            <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-4">(Galleria)</p>
-            <h2 className="section-heading text-fluid-3xl font-display">
-              Il nostro <span className="italic text-[#c9a86c]">studio</span>
-            </h2>
-          </div>
-
-          <div className="flex horizontal-section">
-            {[foto1, foto3, foto5, foto6, foto8, foto9, foto11, foto12].map((img, i) => {
-              const heights = ['h-[55vh]', 'h-[65vh]', 'h-[50vh]', 'h-[60vh]', 'h-[55vh]', 'h-[70vh]', 'h-[52vh]', 'h-[62vh]']
-              const widths = ['w-[75vw]', 'w-[55vw]', 'w-[65vw]', 'w-[50vw]', 'w-[60vw]', 'w-[70vw]', 'w-[55vw]', 'w-[65vw]']
-              const tops = ['mt-0', 'mt-16', 'mt-6', 'mt-24', 'mt-10', 'mt-4', 'mt-20', 'mt-8']
-
-              return (
-                <div key={i} className={`gallery-item flex-shrink-0 px-3 ${tops[i]}`}>
-                  <div className={`${widths[i]} ${heights[i]} lg:w-[35vw] img-zoom relative`}>
-                    <img src={img} alt={`Galleria ${i + 1}`} className="w-full h-full object-cover" />
-                    <span className="absolute bottom-4 left-4 text-xs font-mono text-white/40">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+              </div>
+            )
+          })}
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="py-golden relative">
-        <div className="px-5 lg:px-16">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8">
-            <div className="lg:col-span-4">
-              <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-4">(FAQ)</p>
-              <h2 className="section-heading text-fluid-2xl font-display leading-[0.95]">
-                Domande<br />
-                <span className="italic text-[#c9a86c]">frequenti</span>
+      <section className="py-32 lg:py-48">
+        <div className="px-6 lg:px-12">
+          <div className="lg:grid lg:grid-cols-12 gap-16">
+            {/* Left - Title */}
+            <div className="lg:col-span-4 mb-16 lg:mb-0 lg:sticky lg:top-32 lg:self-start">
+              <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( FAQ )</span>
+              <h2 className="section-title text-section font-display font-semibold mt-4">
+                Domande<br/>
+                <span className="italic text-[#9B7FD1]">frequenti</span>
               </h2>
+              <p className="fade-reveal text-[#6B6B7B] text-lg leading-relaxed mt-8">
+                Risposte rapide alle domande più comuni.
+              </p>
             </div>
 
+            {/* Right - Accordion */}
             <div className="lg:col-span-7 lg:col-start-6">
               {faqs.map((faq, i) => (
                 <div
                   key={i}
-                  className="content-reveal border-b border-white/10"
-                  style={{ marginLeft: `${i * 8}px` }}
+                  className="fade-reveal border-b border-[#0D0B10]/10 first:border-t"
                 >
                   <button
                     onClick={() => setActiveFaq(activeFaq === i ? null : i)}
-                    className="w-full py-7 flex items-center justify-between text-left group"
+                    className="w-full py-6 flex items-center justify-between text-left group"
                   >
-                    <span className="text-fluid-lg font-display pr-6 group-hover:text-[#c9a86c] transition-colors">
-                      {faq.q}
-                    </span>
-                    <span className={`text-2xl text-[#c9a86c] transition-transform duration-500 ${activeFaq === i ? 'rotate-45' : ''}`}>
+                    <div className="flex items-center gap-6">
+                      <span className="text-xs text-[#9B7FD1] font-mono">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="text-xl lg:text-2xl font-display group-hover:text-[#9B7FD1] transition-colors">
+                        {faq.q}
+                      </span>
+                    </div>
+                    <span
+                      className={`w-10 h-10 border border-[#9B7FD1]/30 flex items-center justify-center text-[#9B7FD1] transition-all duration-300 flex-shrink-0 ${
+                        activeFaq === i ? 'bg-[#9B7FD1] text-white rotate-45' : 'group-hover:border-[#9B7FD1]'
+                      }`}
+                    >
                       +
                     </span>
                   </button>
@@ -595,10 +682,10 @@ function App() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
                         className="overflow-hidden"
                       >
-                        <p className="pb-7 text-[#888] leading-relaxed max-w-lg">{faq.a}</p>
+                        <p className="pb-8 pl-16 text-[#6B6B7B] text-lg leading-relaxed max-w-lg">{faq.a}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -610,143 +697,284 @@ function App() {
       </section>
 
       {/* CONTATTI */}
-      <section id="contatti" className="py-golden relative">
-        <div className="px-5 lg:px-16">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8">
-            <div className="lg:col-span-5">
-              <p className="content-reveal text-[#c9a86c] text-xs tracking-[0.4em] uppercase mb-6">(Contatti)</p>
+      <section id="contatti" className="py-32 lg:py-48 bg-[#0D0B10] text-white">
+        <div className="px-6 lg:px-12">
+          {/* Header */}
+          <div className="mb-20">
+            <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Contatti )</span>
+            <h2 className="section-title text-section font-display font-semibold mt-4">
+              Dove<br/>
+              <span className="italic text-[#9B7FD1]">trovarci</span>
+            </h2>
+          </div>
 
-              <h2 className="section-heading text-fluid-3xl font-display leading-[0.95] mb-12 lg:mb-16">
-                Vieni a<br />
-                <span className="italic text-[#c9a86c]">trovarci</span>
-              </h2>
-
-              <div className="space-y-10">
-                <div className="content-reveal">
-                  <p className="text-xs tracking-[0.3em] uppercase text-[#888] mb-3">Indirizzo</p>
-                  <p className="text-fluid-lg font-display leading-snug">
-                    Viale Alcide De Gasperi, 23<br />
-                    25047 Darfo Boario Terme (BS)
-                  </p>
-                </div>
-
-                <div className="content-reveal">
-                  <p className="text-xs tracking-[0.3em] uppercase text-[#888] mb-3">Telefono</p>
-                  <a href="tel:+393757250162" className="text-fluid-xl font-display text-[#c9a86c] hover:opacity-70 transition-opacity">
-                    +39 375 725 0162
-                  </a>
-                </div>
-
-                <div className="content-reveal">
-                  <p className="text-xs tracking-[0.3em] uppercase text-[#888] mb-3">Social</p>
-                  <a
-                    href="https://www.facebook.com/studio.patroni/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 text-fluid-base hover:text-[#c9a86c] transition-colors link-underline"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    @studio.patroni
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6 lg:col-start-7">
-              <div className="content-reveal bg-[#0a0a0a] border border-white/10 p-8 lg:p-10 mb-8">
-                <p className="text-xs tracking-[0.3em] uppercase text-[#888] mb-6">Orari di Apertura</p>
-                <div className="space-y-4">
-                  {orari.map((o, i) => (
-                    <div
-                      key={i}
-                      className={`flex justify-between py-3 border-b border-white/5 ${o.time === 'Chiuso' ? 'text-[#444]' : ''}`}
-                      style={{ paddingLeft: `${i * 3}px` }}
-                    >
-                      <span className="text-sm">{o.day}</span>
-                      <span className="text-sm font-mono">{o.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="content-reveal h-[280px] lg:h-[320px]">
+          {/* Content Grid */}
+          <div className="lg:grid lg:grid-cols-12 gap-8 lg:gap-16">
+            {/* Mappa */}
+            <div className="lg:col-span-7 mb-12 lg:mb-0">
+              <div className="fade-reveal h-[350px] lg:h-[450px] relative overflow-hidden">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2782.8892761!2d10.1886451!3d45.8944098!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47817e8c5c5c5c5c%3A0x0!2sViale%20Alcide%20De%20Gasperi%2C%2023%2C%2025047%20Darfo%20Boario%20Terme%20BS!5e0!3m2!1sit!2sit!4v1600000000000!5m2!1sit!2sit"
-                  className="w-full h-full grayscale brightness-[0.4] hover:grayscale-0 hover:brightness-100 transition-all duration-1000"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2782.8892761!2d10.1886451!3d45.8944098!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDXCsDUzJzM5LjkiTiAxMMKwMTEnMjcuMSJF!5e0!3m2!1sit!2sit!4v1600000000000"
+                  className="w-full h-full grayscale invert opacity-60 hover:opacity-90 transition-opacity duration-500"
                   style={{ border: 0 }}
                   allowFullScreen=""
                   loading="lazy"
                   title="Mappa"
                 />
+                {/* Overlay badge */}
+                <div className="absolute bottom-6 left-6 bg-[#9B7FD1] p-5">
+                  <p className="text-white text-sm tracking-wider uppercase font-medium">Darfo Boario Terme</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="lg:col-span-5">
+              {/* Indirizzo */}
+              <div className="fade-reveal border-b border-white/10 pb-8 mb-8">
+                <div className="flex items-start gap-5">
+                  <div className="w-12 h-12 border border-[#9B7FD1]/50 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#9B7FD1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-widest uppercase text-white/40 mb-2">Indirizzo</p>
+                    <p className="text-xl font-display leading-relaxed">
+                      Viale De Gasperi, 23<br/>
+                      25047 Darfo Boario Terme (BS)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Telefono */}
+              <div className="fade-reveal border-b border-white/10 pb-8 mb-8">
+                <div className="flex items-start gap-5">
+                  <div className="w-12 h-12 border border-[#9B7FD1]/50 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#9B7FD1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-widest uppercase text-white/40 mb-2">Telefono</p>
+                    <a
+                      href="tel:+393757250162"
+                      className="text-2xl font-display text-gradient hover:opacity-80 transition-opacity"
+                    >
+                      +39 375 725 0162
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social */}
+              <div className="fade-reveal border-b border-white/10 pb-8 mb-8">
+                <div className="flex items-start gap-5">
+                  <div className="w-12 h-12 border border-[#9B7FD1]/50 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#9B7FD1]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-widest uppercase text-white/40 mb-2">Facebook</p>
+                    <a
+                      href="https://www.facebook.com/studio.patroni/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xl font-display hover:text-[#9B7FD1] transition-colors"
+                    >
+                      @studio.patroni
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Orari */}
+              <div className="fade-reveal bg-white/5 p-6 lg:p-8">
+                <p className="text-xs tracking-widest uppercase text-white/40 mb-6">Orari di apertura</p>
+                <div className="grid grid-cols-3 gap-4">
+                  {orari.map((o, i) => (
+                    <div key={i} className="text-center py-3 border border-white/10">
+                      <p className="text-xs text-white/50 mb-1 uppercase">{o.day}</p>
+                      <p className={`text-sm font-medium ${o.time === '—' ? 'text-white/30' : 'text-white'}`}>
+                        {o.time}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="relative py-golden overflow-hidden bg-[#c9a86c]">
-        <div className="relative z-10 px-5 lg:px-16 text-center">
-          <h2 className="section-heading text-fluid-3xl lg:text-fluid-4xl font-display text-[#0c0c0c] mb-6">
-            Prenota la tua <span className="italic">visita</span>
-          </h2>
-          <p className="content-reveal text-[#0c0c0c]/60 text-fluid-base mb-12 max-w-md mx-auto">
-            Non rimandare la cura del tuo sorriso
-          </p>
+      {/* CTA - Prenota */}
+      <section id="prenota" className="py-32 lg:py-48 bg-[#F5F3F7]">
+        <div className="px-6 lg:px-12">
+          <div className="lg:grid lg:grid-cols-12 gap-16">
+            {/* Left - Title */}
+            <div className="lg:col-span-5 mb-16 lg:mb-0">
+              <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase">( Prenota )</span>
+              <h2 className="section-title text-section font-display font-semibold mt-4">
+                Prenota la tua<br/>
+                <span className="italic text-[#9B7FD1]">visita</span>
+              </h2>
+              <p className="fade-reveal text-[#6B6B7B] text-lg leading-relaxed mt-8 max-w-md">
+                Compila il form e ti ricontatteremo per confermare l'appuntamento. In alternativa, chiamaci direttamente.
+              </p>
 
-          <div className="content-reveal flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <a
-              href="tel:+393757250162"
-              className="group relative inline-flex items-center gap-3 px-10 py-5 bg-[#0c0c0c] text-[#f8f8f6] font-medium tracking-wider uppercase overflow-hidden"
-            >
-              <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span className="relative z-10">Chiama Ora</span>
-              <span className="absolute inset-0 bg-[#f8f8f6] text-[#0c0c0c] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-            </a>
+              <div className="fade-reveal mt-12 space-y-6">
+                <a
+                  href="tel:+393757250162"
+                  className="flex items-center gap-4 group"
+                >
+                  <div className="w-14 h-14 border border-[#9B7FD1] flex items-center justify-center group-hover:bg-[#9B7FD1] transition-colors">
+                    <svg className="w-5 h-5 text-[#9B7FD1] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-widest uppercase text-[#6B6B7B] mb-1">Chiama ora</p>
+                    <p className="text-xl font-display text-[#9B7FD1]">+39 375 725 0162</p>
+                  </div>
+                </a>
 
-            <a
-              href="https://www.facebook.com/studio.patroni/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 text-[#0c0c0c]/80 hover:text-[#0c0c0c] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              Facebook
-            </a>
+                <a
+                  href="https://www.facebook.com/studio.patroni/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 group"
+                >
+                  <div className="w-14 h-14 border border-[#9B7FD1] flex items-center justify-center group-hover:bg-[#9B7FD1] transition-colors">
+                    <svg className="w-5 h-5 text-[#9B7FD1] group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-widest uppercase text-[#6B6B7B] mb-1">Scrivici su</p>
+                    <p className="text-xl font-display">Facebook</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            {/* Right - Form */}
+            <div className="lg:col-span-6 lg:col-start-7">
+              <form className="fade-reveal bg-white p-8 lg:p-12 shadow-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                      Nome *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10]"
+                      placeholder="Il tuo nome"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                      Cognome *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10]"
+                      placeholder="Il tuo cognome"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                      Telefono *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10]"
+                      placeholder="+39 ..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10]"
+                      placeholder="email@esempio.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                    Servizio richiesto
+                  </label>
+                  <select
+                    className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10] appearance-none cursor-pointer"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239B7FD1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5rem' }}
+                  >
+                    <option value="">Seleziona un servizio</option>
+                    <option value="visita">Prima visita</option>
+                    <option value="igiene">Igiene dentale</option>
+                    <option value="ortodonzia">Ortodonzia</option>
+                    <option value="invisalign">Invisalign</option>
+                    <option value="carie">Cura carie</option>
+                    <option value="altro">Altro</option>
+                  </select>
+                </div>
+
+                <div className="mb-8">
+                  <label className="block text-xs tracking-widest uppercase text-[#6B6B7B] mb-3">
+                    Messaggio
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-4 border border-[#0D0B10]/10 bg-transparent focus:border-[#9B7FD1] focus:outline-none transition-colors text-[#0D0B10] resize-none"
+                    placeholder="Descrivi brevemente il motivo della visita o eventuali richieste particolari..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-5 gradient-bg text-white text-sm font-semibold tracking-wider uppercase hover:opacity-90 transition-opacity"
+                >
+                  Richiedi appuntamento
+                </button>
+
+                <p className="text-xs text-[#6B6B7B] mt-6 text-center">
+                  Ti ricontatteremo entro 24 ore per confermare l'appuntamento.
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-12 lg:py-16 border-t border-white/5">
-        <div className="px-5 lg:px-16">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
-            <div>
-              <img src={logo} alt="Studio Patroni" className="h-9 mb-4 invert opacity-50" />
-              <p className="text-[#888] text-xs">
-                © {new Date().getFullYear()} Studio Dentistico Dott.ssa Patroni
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-6 lg:gap-10">
-              {['Chi Siamo', 'Servizi', 'Galleria', 'Contatti'].map((item, i) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(' ', '-')}`}
-                  className="text-xs text-[#888] hover:text-[#f8f8f6] transition-colors tracking-wider uppercase"
-                  style={{ transform: `translateY(${i % 2 === 0 ? 0 : 3}px)` }}
-                >
-                  {item}
-                </a>
-              ))}
-            </div>
+      <footer className="py-12 border-t border-[#0D0B10]/10">
+        <div className="px-6 lg:px-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+          <img src={logo} alt="Patroni" className="h-10 opacity-50" />
+          <div className="flex flex-wrap gap-8">
+            {['Servizi', 'Studio', 'Galleria', 'Contatti', 'Prenota'].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="text-sm text-[#6B6B7B] hover:text-[#9B7FD1] transition-colors"
+              >
+                {item}
+              </a>
+            ))}
           </div>
+          <p className="text-sm text-[#6B6B7B]">
+            © {new Date().getFullYear()} Studio Patroni
+          </p>
         </div>
       </footer>
     </div>
