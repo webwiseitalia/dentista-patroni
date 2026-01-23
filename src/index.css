@@ -136,3 +136,13 @@ body {
   z-index: 9998;
   mix-blend-mode: difference;
 }
+
+/* Hide scrollbar for mobile gallery */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

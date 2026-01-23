@@ -221,11 +221,11 @@ function App() {
         )
       })
 
-      // Horizontal scroll gallery
+      // Horizontal scroll gallery - only on desktop (lg: 1024px+)
       const gallerySection = document.querySelector('.gallery-section')
-      const galleryTrack = document.querySelector('.gallery-track')
+      const galleryTrack = document.querySelector('.gallery-track-desktop')
 
-      if (gallerySection && galleryTrack) {
+      if (gallerySection && galleryTrack && window.innerWidth >= 1024) {
         gsap.to(galleryTrack, {
           x: () => -(galleryTrack.scrollWidth - window.innerWidth + 100),
           ease: 'none',
@@ -658,33 +658,53 @@ function App() {
           </h2>
         </div>
 
-        {/* Horizontal Gallery - both mobile and desktop */}
-        <div className="gallery-track flex items-center gap-4 lg:gap-8 py-32 pl-[50vw] lg:pl-[40vw]">
-          {[foto1, foto3, foto5, foto6, foto7, foto8, foto9, foto11, foto12].map((img, i) => {
-            // Mobile: wider fixed sizes, Desktop: varied sizes
-            const mobileWidth = 'min-w-[280px] w-[280px]'
-            const mobileHeight = 'h-[300px]'
-            const desktopWidths = ['lg:w-[400px]', 'lg:w-[350px]', 'lg:w-[450px]', 'lg:w-[380px]', 'lg:w-[420px]', 'lg:w-[360px]', 'lg:w-[400px]', 'lg:w-[380px]', 'lg:w-[450px]']
-            const desktopHeights = ['lg:h-[50vh]', 'lg:h-[65vh]', 'lg:h-[45vh]', 'lg:h-[55vh]', 'lg:h-[50vh]', 'lg:h-[60vh]', 'lg:h-[48vh]', 'lg:h-[55vh]', 'lg:h-[50vh]']
-            const tops = ['lg:mt-0', 'lg:mt-16', 'lg:-mt-8', 'lg:mt-24', 'lg:mt-4', 'lg:-mt-12', 'lg:mt-20', 'lg:mt-0', 'lg:mt-12']
-
-            return (
+        {/* Mobile Gallery - manual horizontal scroll (swipe) */}
+        <div className="lg:hidden overflow-x-auto overflow-y-hidden py-32 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex items-center gap-4 pl-6 pr-6" style={{ width: 'max-content' }}>
+            {[foto1, foto3, foto5, foto6, foto7, foto8, foto9, foto11, foto12].map((img, i) => (
               <div
                 key={i}
-                className={`flex-shrink-0 ${mobileWidth} ${mobileHeight} ${desktopWidths[i]} ${desktopHeights[i]} ${tops[i]} relative group`}
+                className="flex-shrink-0 w-[280px] h-[300px] relative"
               >
                 <img
                   src={img}
                   alt={`Gallery ${i + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-[#9B7FD1]/0 group-hover:bg-[#9B7FD1]/20 transition-colors duration-500" />
                 <span className="absolute bottom-4 left-4 text-white/50 text-xs font-mono">
                   {String(i + 1).padStart(2, '0')}
                 </span>
               </div>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Gallery - scroll-triggered horizontal animation */}
+        <div className="hidden lg:block">
+          <div className="gallery-track-desktop flex items-center gap-8 py-32 pl-[40vw]">
+            {[foto1, foto3, foto5, foto6, foto7, foto8, foto9, foto11, foto12].map((img, i) => {
+              const widths = ['w-[400px]', 'w-[350px]', 'w-[450px]', 'w-[380px]', 'w-[420px]', 'w-[360px]', 'w-[400px]', 'w-[380px]', 'w-[450px]']
+              const heights = ['h-[50vh]', 'h-[65vh]', 'h-[45vh]', 'h-[55vh]', 'h-[50vh]', 'h-[60vh]', 'h-[48vh]', 'h-[55vh]', 'h-[50vh]']
+              const tops = ['mt-0', 'mt-16', '-mt-8', 'mt-24', 'mt-4', '-mt-12', 'mt-20', 'mt-0', 'mt-12']
+
+              return (
+                <div
+                  key={i}
+                  className={`flex-shrink-0 ${widths[i]} ${heights[i]} ${tops[i]} relative group`}
+                >
+                  <img
+                    src={img}
+                    alt={`Gallery ${i + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-[#9B7FD1]/0 group-hover:bg-[#9B7FD1]/20 transition-colors duration-500" />
+                  <span className="absolute bottom-4 left-4 text-white/50 text-xs font-mono">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 
