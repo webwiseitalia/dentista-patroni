@@ -382,16 +382,17 @@ function HomePage() {
               width="800"
               height="600"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3F7] via-transparent to-transparent" />
+            {/* Gradient che si estende oltre il contenitore per evitare linee visibili */}
+            <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-[#F5F3F7] via-[#F5F3F7]/50 to-transparent" />
             {/* Floating badge mobile */}
-            <div className="hero-float absolute bottom-4 right-4 bg-white p-4 shadow-2xl">
+            <div className="hero-float absolute bottom-4 right-4 bg-white p-4 shadow-2xl z-10">
               <p className="text-3xl font-display text-[#9B7FD1]">15+</p>
               <p className="text-xs tracking-widest uppercase text-[#6B6B7B]">Anni</p>
             </div>
           </div>
 
           {/* Mobile Content */}
-          <div className="flex-1 flex flex-col justify-center px-6 py-10">
+          <div className="flex-1 flex flex-col justify-center px-6 py-10 -mt-4">
             <span className="text-[#3DD6E8] text-xs tracking-[0.3em] uppercase mb-4">
               Darfo Boario Terme
             </span>
@@ -584,7 +585,7 @@ function HomePage() {
       </section>
 
       {/* INVISALIGN - Asymmetric */}
-      <section className="relative py-32 lg:py-0">
+      <section className="relative py-16 lg:py-0">
         <div className="lg:grid lg:grid-cols-12 lg:min-h-screen">
           <div className="lg:col-span-7 lg:col-start-1 relative h-[60vh] lg:h-auto">
             <div className="img-anim absolute inset-0">
